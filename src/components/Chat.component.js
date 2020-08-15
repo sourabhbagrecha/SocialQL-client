@@ -20,8 +20,8 @@ import { AlertContext } from "../contexts/Alert.context";
 import moment from "moment";
 
 const CHAT_QUERY = gql`
-  query findChat($user: ID!) {
-    chat(user: $user) {
+  query findChat($friend: ID!) {
+    chat(friend: $friend) {
       body
       createdAt
       user
@@ -71,21 +71,13 @@ function Chat(props) {
     const { token } = data.sendMessage;
     setMessages((messages) => messages.filter((msg) => msg._id !== token));
   };
-  const onMessageAddedSubscription = ({
-    subscriptionData: {
-      data: { messageAdded },
-    },
-  }) => {
-    if (messageAdded.user === userId) {
-      const messageFoundIndex = messages.findIndex(
-        (message) => message._id === messageAdded._id
-      );
-      if (messageFoundIndex < 0) {
-        setMessages((messages) => [...messages, messageAdded]);
-      }
-    } else {
-      setMessages((messages) => [...messages, messageAdded]);
-    }
+  const onMessageAddedSubscription = (data) => {
+    const {
+      subscriptionData: {
+        data: { messageAdded },
+      },
+    } = data;
+    setMessages((messages) => [...messages, messageAdded]);
   };
   const onError = (err) => {
     console.log({ err });
@@ -109,7 +101,7 @@ function Chat(props) {
 
   useEffect(() => {
     setMessages((messages) => []);
-    loadChat({ variables: { user: user._id } });
+    loadChat({ variables: { friend: user.friendId } });
   }, [user]);
 
   const handleSendMessage = () => {
@@ -187,7 +179,7 @@ const useStyles = makeStyles((theme) => ({
   },
   bubbleBody: {
     padding: "4px 10px",
-    borderRadius: "10px",
+    borderRadius: "5px",
     display: "inline-block",
   },
   bubbleMain: {
@@ -201,21 +193,26 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "row",
   },
   bubbleBodyMe: {
-    backgroundColor: "lightblue",
+    backgroundColor: "lightgreen",
   },
   bubbleBodyFriend: {
-    backgroundColor: "lightgreen",
+    backgroundColor: "lightblue",
   },
   replyField: {
     marginTop: "2%",
   },
-  messageBubbleBodyText: { padding: 0, margin: 0, float: "left" },
+  messageBubbleBodyText: {
+    padding: 0,
+    margin: 0,
+    float: "left",
+    fontSize: "0.9rem",
+  },
   messageBubbleTimeText: {
     padding: 0,
     margin: 0,
     float: "right",
-    fontSize: "0.8rem",
-    color: "#515050"
+    fontSize: "0.7rem",
+    color: "#515050",
   },
 }));
 

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { AppBar, Tabs, Tab, Typography, Box, Grid } from "@material-ui/core";
 import FriendsList from "../components/FriendsList.component";
 import Chat from "../components/Chat.component";
+import SuggestionsList from "../components/SuggestionsList.component";
+import RequestsReceivedList from "../components/RequestsReceivedList.component";
+import RequestsSentList from "../components/RequestsSentList.component";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -29,18 +32,19 @@ const Home = () => {
   };
 
   return (
-    <Grid container>
-      <Grid item md={4}>
-        <AppBar position="static">
+    <Grid container style={{ margin: 0 }}>
+      <Grid item md={4} style={{ margin: 0 }}>
+        <AppBar position="static" style={{ margin: 0 }}>
           <Tabs
-            variant="standard"
+            variant="fullWidth"
             value={value}
             onChange={handleChange}
             aria-label="nav tabs example"
           >
-            <Tab label="Friends" />
-            <Tab label="Suggestions" />
-            <Tab label="Requests" />
+            <Tab wrapped label="Friends" />
+            <Tab wrapped label="Suggestions" />
+            <Tab wrapped label="Requests Received" />
+            <Tab wrapped label="Requests Sent" />
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
@@ -50,10 +54,13 @@ const Home = () => {
           />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          Suggestions
+          <SuggestionsList />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          Requests
+          <RequestsReceivedList />
+        </TabPanel>
+        <TabPanel value={value} index={3}>
+          <RequestsSentList />
         </TabPanel>
       </Grid>
       <Grid item md={8}>
