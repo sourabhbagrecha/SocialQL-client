@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Tabs, Tab, Typography, Box, Grid } from "@material-ui/core";
 import FriendsList from "../components/FriendsList.component";
 import Chat from "../components/Chat.component";
@@ -24,18 +22,14 @@ function TabPanel(props) {
 
 const Home = () => {
   const [value, setValue] = React.useState(0);
-  const [selectedFriend, setSelectedFriend] = useState({
-    "_id": "5f2573d822d0e1699cff52c1",
-    "name": "Anshul Bhardwaj",
-    "email": "anshul@gmail.com"
-  });
+  const [selectedFriend, setSelectedFriend] = useState({});
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
   return (
-    <Grid container spacing={0}>
+    <Grid container>
       <Grid item md={4}>
         <AppBar position="static">
           <Tabs
@@ -50,7 +44,10 @@ const Home = () => {
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
-          <FriendsList setSelectedFriend={setSelectedFriend} />
+          <FriendsList
+            setSelectedFriend={setSelectedFriend}
+            selectedFriend={selectedFriend}
+          />
         </TabPanel>
         <TabPanel value={value} index={1}>
           Suggestions
@@ -59,7 +56,7 @@ const Home = () => {
           Requests
         </TabPanel>
       </Grid>
-      <Grid md={8}>
+      <Grid item md={8}>
         {selectedFriend._id && <Chat user={selectedFriend} />}
       </Grid>
     </Grid>

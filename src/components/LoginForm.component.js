@@ -10,6 +10,8 @@ import {
 import useInputState from "../hooks/useInputState";
 import { useLocalStorageState } from "../hooks/useLocalStorageState";
 import { AlertContext } from "../contexts/Alert.context";
+import { useHistory } from "react-router-dom";
+import { UserContext } from "../contexts/User.context";
 
 const LOGIN = gql`
   mutation login($email: String!, $password: String!) {
@@ -26,12 +28,15 @@ function LoginForm(props) {
   const [email, setEmail] = useInputState("sourabh@gmail.com");
   const [password, setPassword] = useInputState("123456");
   const { setAlert } = useContext(AlertContext);
+  const history = useHistory();
+  const { loginLocal } = useContext(UserContext);
 
-  const onCompleted = ({ login }) => {
-    const { token, userId } = login;
+  const onCompleted = ({ login: { token, userId } }) => {
+    loginLocal({ token, userId })
     setToken(token);
     setUserId(userId);
-    return setAlert(true, "Login up successfully!", "success");
+    history.push("/");
+    return setAlert(true, "Logged in successfully!", "success");
   };
   const onError = (err) => {
     console.log({err});

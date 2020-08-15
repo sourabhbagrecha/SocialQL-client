@@ -5,11 +5,11 @@ const fetchLocalUser = (dispatch) => async (payload) => {
   dispatch({ type: "ADD_USER", payload });
 };
 
-const login = (dispatch) => async (payload) => {
+const loginLocal = (dispatch) => async (payload) => {
   dispatch({ type: "ADD_USER", payload });
 };
 
-const signup = (dispatch) => async (payload) => {
+const signupLocal = (dispatch) => async (payload) => {
   dispatch({ type: "ADD_USER", payload });
 };
 
@@ -24,7 +24,7 @@ const initialState = {
 
 const { Context, Provider } = createDataContext(
   userReducer,
-  { login, signup, logout, fetchLocalUser },
+  { loginLocal, signupLocal, logout, fetchLocalUser },
   initialState
 );
 

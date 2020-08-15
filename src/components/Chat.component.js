@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useContext } from "react";
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import {
+  gql,
+  useLazyQuery,
+  useMutation,
+  useSubscription,
+} from "@apollo/client";
 import {
   Typography,
   Paper,
@@ -12,6 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 import { UserContext } from "../contexts/User.context";
 import useInputState from "../hooks/useInputState";
 import { AlertContext } from "../contexts/Alert.context";
+import moment from "moment";
 
 const CHAT_QUERY = gql`
   query findChat($user: ID!) {
@@ -25,7 +31,7 @@ const CHAT_QUERY = gql`
 
 const SEND_MESSAGE_MUTATION = gql`
   mutation sendMessage($body: String!, $user: ID!, $token: ID!) {
-    sendMessage(body: $body, user: $user, token: $token){
+    sendMessage(body: $body, user: $user, token: $token) {
       token
       message {
         _id
@@ -33,6 +39,17 @@ const SEND_MESSAGE_MUTATION = gql`
         body
         createdAt
       }
+    }
+  }
+`;
+
+const SUBSCRIBE_TO_CHAT = gql`
+  subscription messageAdded($friend: ID!) {
+    messageAdded(friend: $friend) {
+      _id
+      user
+      body
+      createdAt
     }
   }
 `;
@@ -51,14 +68,24 @@ function Chat(props) {
     setMessages((messages) => [...messages, ...data.chat]);
   };
   const onMessageSent = (data) => {
-    const { message, token } = data.sendMessage;
-    setMessages(messages => messages.map(msg => {
-      if(msg._id === token){
-        return message;
-      } else {
-        return msg;
+    const { token } = data.sendMessage;
+    setMessages((messages) => messages.filter((msg) => msg._id !== token));
+  };
+  const onMessageAddedSubscription = ({
+    subscriptionData: {
+      data: { messageAdded },
+    },
+  }) => {
+    if (messageAdded.user === userId) {
+      const messageFoundIndex = messages.findIndex(
+        (message) => message._id === messageAdded._id
+      );
+      if (messageFoundIndex < 0) {
+        setMessages((messages) => [...messages, messageAdded]);
       }
-    }))
+    } else {
+      setMessages((messages) => [...messages, messageAdded]);
+    }
   };
   const onError = (err) => {
     console.log({ err });
@@ -73,6 +100,12 @@ function Chat(props) {
     onCompleted: onMessageSent,
     onError,
   });
+  useSubscription(SUBSCRIBE_TO_CHAT, {
+    onSubscriptionData: onMessageAddedSubscription,
+    variables: {
+      friend: user.friendId,
+    },
+  });
 
   useEffect(() => {
     setMessages((messages) => []);
@@ -81,14 +114,18 @@ function Chat(props) {
 
   const handleSendMessage = () => {
     const token = uuidv4();
-    setMessages((messages) => [...messages, { _id: token, body: messageBody, createdAt: (new Date()), user: userId }]);
-    sendMessage({ variables: { user: user._id, body:  messageBody, token } })
+    setMessages((messages) => [
+      ...messages,
+      { _id: token, body: messageBody, createdAt: new Date(), user: userId },
+    ]);
+    sendMessage({ variables: { user: user._id, body: messageBody, token } });
   };
 
   const messageBubble = ({ _id, body, user, createdAt }) => {
     const me = userId === user;
     return (
       <div
+        key={_id}
         className={`${classes.bubbleMain} ${
           me ? classes.bubbleMe : classes.bubbleFriend
         }`}
@@ -98,7 +135,11 @@ function Chat(props) {
             me ? classes.bubbleBodyMe : classes.bubbleBodyFriend
           }`}
         >
-          <Typography variant="body2">{body}</Typography>
+          <p className={classes.messageBubbleBodyText}>{body}</p>
+          <br />
+          <p className={classes.messageBubbleTimeText}>
+            {moment(createdAt).format("hh:mm a")}
+          </p>
         </div>
       </div>
     );
@@ -167,6 +208,14 @@ const useStyles = makeStyles((theme) => ({
   },
   replyField: {
     marginTop: "2%",
+  },
+  messageBubbleBodyText: { padding: 0, margin: 0, float: "left" },
+  messageBubbleTimeText: {
+    padding: 0,
+    margin: 0,
+    float: "right",
+    fontSize: "0.8rem",
+    color: "#515050"
   },
 }));
 

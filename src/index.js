@@ -1,25 +1,65 @@
-import React from "react";
+import React, { useState } from "react";
 import { render } from "react-dom";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  HttpLink,
+  split,
+} from "@apollo/client";
+import { WebSocketLink } from "@apollo/client/link/ws";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { BrowserRouter } from "react-router-dom";
+import { getMainDefinition } from "@apollo/client/utilities";
 
 const Main = () => {
-  const [token] = useLocalStorageState("token");
+  const [globalToken, setGlobalToken] = useState("");
+
+  const httpLink = new HttpLink({
+    uri: "http://localhost:5000/graphql",
+    headers: {
+      Authorization: `Bearer ${globalToken}`,
+    },
+  });
+
+  const wsLink = new WebSocketLink({
+    uri: `ws://localhost:5000/graphql`,
+    headers: {
+      Authorization: `Bearer ${globalToken}`,
+    },
+    options: {
+      reconnect: true,
+      connectionParams: {
+        Authorization: `Bearer ${globalToken}`
+      },
+    },
+  });
+
+  const splitLink = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+      return (
+        definition.kind === "OperationDefinition" &&
+        definition.operation === "subscription"
+      );
+    },
+    wsLink,
+    httpLink
+  );
 
   const client = new ApolloClient({
-    uri: "http://localhost:5000/graphql",
+    link: splitLink,
     cache: new InMemoryCache(),
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${globalToken}`,
     },
   });
   return (
     <ApolloProvider client={client}>
       <BrowserRouter>
-        <App/>
+        <App setGlobalToken={setGlobalToken} />
       </BrowserRouter>
     </ApolloProvider>
   );

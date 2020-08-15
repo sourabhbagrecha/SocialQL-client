@@ -3,17 +3,26 @@ import { gql, useQuery } from "@apollo/client";
 import Friend from "../components/Friend.component";
 
 const GET_FRIENDS = gql`
-  query getFriends {
+  query friends {
     friends {
+      user {
+        _id
+        name
+        email
+      }
       _id
-      name
-      email
     }
   }
 `;
 
 function Friends() {
-  const { loading, error, data } = useQuery(GET_FRIENDS);
+
+  const onError = (error) => {
+    console.log(error);
+  };
+  const { loading, error, data } = useQuery(GET_FRIENDS, {
+    onError,
+  });
 
   const renderFriend = (prop) => <Friend {...prop} />;
 
