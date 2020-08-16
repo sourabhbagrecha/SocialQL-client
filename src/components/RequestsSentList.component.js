@@ -1,13 +1,9 @@
-import React, { useState } from "react";
-import {
-  List,
-  ListItem,
-  ListItemAvatar,
-  Avatar,
-  ListItemText,
-} from "@material-ui/core";
-import { Person } from "@material-ui/icons";
-import { useQuery, gql } from "@apollo/client";
+import React, { useState, useContext } from "react";
+import { List } from "@material-ui/core";
+import { RemoveCircle } from "@material-ui/icons";
+import { useQuery, gql, useMutation } from "@apollo/client";
+import { AlertContext } from "../contexts/Alert.context";
+import UserListItem from "./UserListItem.component";
 
 const GET_REQUESTS_SENT = gql`
   query requestsSent {
@@ -19,13 +15,18 @@ const GET_REQUESTS_SENT = gql`
   }
 `;
 
+const CANCEL_FRIEND_REQUEST = gql`
+  mutation ($userId: ID!){
+    cancelFriendRequest(userId: $userId)
+  }
+`;
+
 function RequestsSentList(props) {
   const [requests, setRequests] = useState([]);
+  const { setAlert } = useContext(AlertContext);
+
   const onCompleted = (data) => {
-    setRequests((requests) => [
-      ...requests,
-      ...data.requestsSent,
-    ]);
+    setRequests((requests) => [...requests, ...data.requestsSent]);
   };
   const onError = (error) => {
     console.log(error);
@@ -35,24 +36,39 @@ function RequestsSentList(props) {
     onError,
   });
 
-  const requestSentItem = (user) => {
-    const { _id, name, email } = user;
-    return (
-      <ListItem button key={_id} onClick={() => {}}>
-        <ListItemAvatar>
-          <Avatar>
-            <Person />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary={name} secondary={email} />
-      </ListItem>
-    );
+  const onCancelFriendRequestCompleted = (data) => {
+    console.log({ data });
+    return setAlert(true, data.cancelFriendRequest, "success");
+  };
+
+  const [cancelFriendRequest] = useMutation(CANCEL_FRIEND_REQUEST, {
+    onCompleted: onCancelFriendRequestCompleted,
+    onError,
+  });
+
+  const handleCancelFriendRequestClick = async (_id) => {
+    await cancelFriendRequest({ variables: { userId: _id } });
+    setRequests((requests) => {
+      return requests.filter((s) => s._id !== _id);
+    });
+  };
+
+  const itemAction = {
+    text: "Cancel",
+    icon: RemoveCircle,
+    function: handleCancelFriendRequestClick,
   };
 
   if (loading) return "loading...";
   if (error) return `${error}`;
 
-  return <List>{requests.map(requestSentItem)}</List>;
+  return (
+    <List>
+      {requests.map((req) => (
+        <UserListItem {...req} action={itemAction} />
+      ))}
+    </List>
+  );
 }
 
 export default RequestsSentList;

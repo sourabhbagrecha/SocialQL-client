@@ -1,13 +1,9 @@
-import React, { useState } from "react";
-import {
-  List,
-  ListItem,
-  ListItemAvatar,
-  Avatar,
-  ListItemText,
-} from "@material-ui/core";
-import { Person } from "@material-ui/icons";
-import { useQuery, gql } from "@apollo/client";
+import React, { useState, useContext } from "react";
+import { List } from "@material-ui/core";
+import { useQuery, gql, useMutation } from "@apollo/client";
+import UserListItem from "./UserListItem.component";
+import { AlertContext } from "../contexts/Alert.context";
+import { PersonAdd } from "@material-ui/icons";
 
 const GET_SUGGESTIONS = gql`
   query friendSuggestions {
@@ -19,10 +15,21 @@ const GET_SUGGESTIONS = gql`
   }
 `;
 
+const SEND_FRIEND_REQUEST = gql`
+  mutation friendRequest($userId: ID!) {
+    friendRequest(userId: $userId)
+  }
+`;
+
 function SuggestionsList(props) {
   const [suggestions, setSuggestions] = useState([]);
+  const { setAlert } = useContext(AlertContext);
+
   const onCompleted = (data) => {
-    setSuggestions((suggestions) => [...suggestions, ...data.friendSuggestions]);
+    setSuggestions((suggestions) => [
+      ...suggestions,
+      ...data.friendSuggestions,
+    ]);
   };
   const onError = (error) => {
     console.log(error);
@@ -32,24 +39,39 @@ function SuggestionsList(props) {
     onError,
   });
 
-  const suggestionItem = (user) => {
-    const { _id, name, email } = user;
-    return (
-      <ListItem button key={_id} onClick={() => {}}>
-        <ListItemAvatar>
-          <Avatar>
-            <Person />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary={name} secondary={email} />
-      </ListItem>
-    );
+  const onFriendRequestCompleted = (data) => {
+    console.log({ data });
+    return setAlert(true, data.friendRequest, "success");
+  };
+
+  const [sendFriendRequest] = useMutation(SEND_FRIEND_REQUEST, {
+    onCompleted: onFriendRequestCompleted,
+    onError,
+  });
+
+  const handleSendFriendRequestClick = async (_id) => {
+    await sendFriendRequest({ variables: { userId: _id } });
+    setSuggestions((suggestions) => {
+      return suggestions.filter((s) => s._id !== _id);
+    });
+  };
+
+  const itemAction = {
+    text: "Add Friend",
+    icon: PersonAdd,
+    function: handleSendFriendRequestClick,
   };
 
   if (loading) return "loading...";
   if (error) return `${error}`;
 
-  return <List>{suggestions.map(suggestionItem)}</List>;
+  return (
+    <List>
+      {suggestions.map((s) => (
+        <UserListItem {...s} action={itemAction} />
+      ))}
+    </List>
+  );
 }
 
 export default SuggestionsList;

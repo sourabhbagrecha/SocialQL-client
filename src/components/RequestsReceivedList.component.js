@@ -1,13 +1,9 @@
-import React, { useState } from "react";
-import {
-  List,
-  ListItem,
-  ListItemAvatar,
-  Avatar,
-  ListItemText,
-} from "@material-ui/core";
-import { Person } from "@material-ui/icons";
-import { useQuery, gql } from "@apollo/client";
+import React, { useState, useContext } from "react";
+import { List } from "@material-ui/core";
+import { PersonAdd } from "@material-ui/icons";
+import { useQuery, gql, useMutation } from "@apollo/client";
+import UserListItem from "./UserListItem.component";
+import { AlertContext } from "../contexts/Alert.context";
 
 const GET_REQUESTS_RECEIVED = gql`
   query requestsReceived {
@@ -19,13 +15,17 @@ const GET_REQUESTS_RECEIVED = gql`
   }
 `;
 
+const ACCEPT_FRIEND_REQUEST = gql`
+  mutation friendAccept($userId: ID!) {
+    friendAccept(userId: $userId)
+  }
+`;
+
 function RequestsReceivedList(props) {
+  const { setAlert } = useContext(AlertContext);
   const [requests, setRequests] = useState([]);
   const onCompleted = (data) => {
-    setRequests((requests) => [
-      ...requests,
-      ...data.requestsReceived,
-    ]);
+    setRequests((requests) => [...requests, ...data.requestsReceived]);
   };
   const onError = (error) => {
     console.log(error);
@@ -35,24 +35,38 @@ function RequestsReceivedList(props) {
     onError,
   });
 
-  const requestReceivedItem = (user) => {
-    const { _id, name, email } = user;
-    return (
-      <ListItem button key={_id} onClick={() => {}}>
-        <ListItemAvatar>
-          <Avatar>
-            <Person />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary={name} secondary={email} />
-      </ListItem>
-    );
+  const onAcceptFriendRequestCompleted = (data) => {
+    return setAlert(true, data.friendAccept, "success");
+  };
+
+  const [acceptFriendRequest] = useMutation(ACCEPT_FRIEND_REQUEST, {
+    onCompleted: onAcceptFriendRequestCompleted,
+    onError,
+  });
+
+  const handleAcceptFriendRequestClick = async (_id) => {
+    await acceptFriendRequest({ variables: { userId: _id } });
+    setRequests((requests) => {
+      return requests.filter((req) => req._id !== _id);
+    });
+  };
+
+  const itemAction = {
+    text: "Accept",
+    icon: PersonAdd,
+    function: handleAcceptFriendRequestClick,
   };
 
   if (loading) return "loading...";
   if (error) return `${error}`;
 
-  return <List>{requests.map(requestReceivedItem)}</List>;
+  return (
+    <List>
+      {requests.map((req) => (
+        <UserListItem {...req} action={itemAction} />
+      ))}
+    </List>
+  );
 }
 
 export default RequestsReceivedList;

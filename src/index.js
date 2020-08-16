@@ -10,7 +10,6 @@ import {
   split,
 } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
-import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { BrowserRouter } from "react-router-dom";
 import { getMainDefinition } from "@apollo/client/utilities";
 
@@ -26,9 +25,6 @@ const Main = () => {
 
   const wsLink = new WebSocketLink({
     uri: `ws://localhost:5000/graphql`,
-    headers: {
-      Authorization: `Bearer ${globalToken}`,
-    },
     options: {
       reconnect: true,
       connectionParams: {
