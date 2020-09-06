@@ -1,0 +1,15 @@
+const UPLOAD_STATUS = {
+  UPLOADING: "UPLOADING",
+  UPLOADED: "UPLOADED",
+  FAILED: "FAILED",
+};
+
+const SOURCE_TYPE = {
+  IMAGE: "IMAGE",
+  VIDEO: "VIDEO",
+};
+
+module.exports = {
+  SOURCE_TYPE,
+  UPLOAD_STATUS,
+};

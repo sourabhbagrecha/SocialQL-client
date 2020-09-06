@@ -20,8 +20,8 @@ const SIGNUP = gql`
   }
 `;
 
-function SignupForm(props) {
-  const [_, setToken] = useLocalStorageState("token");
+function SignupForm(props) {// eslint-disable-next-line
+  const [_, setToken] = useLocalStorageState("token");// eslint-disable-next-line
   const [__, setUserId] = useLocalStorageState("userId");
   const [email, setEmail] = useInputState("sourabh@gmail.com");
   const [password, setPassword] = useInputState("123456");

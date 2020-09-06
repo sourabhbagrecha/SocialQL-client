@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 import { gql, useMutation } from "@apollo/client";
 import {
   TextField,
@@ -22,8 +22,8 @@ const LOGIN = gql`
   }
 `;
 
-function LoginForm(props) {
-  const [_, setToken] = useLocalStorageState("token");
+function LoginForm(props) {// eslint-disable-next-line
+  const [_, setToken] = useLocalStorageState("token");// eslint-disable-next-line
   const [__, setUserId] = useLocalStorageState("userId");
   const [email, setEmail] = useInputState("sourabh@gmail.com");
   const [password, setPassword] = useInputState("123456");

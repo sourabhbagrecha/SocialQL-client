@@ -101,7 +101,7 @@ function Chat(props) {
 
   useEffect(() => {
     setMessages((messages) => []);
-    loadChat({ variables: { friend: user.friendId } });
+    loadChat({ variables: { friend: user.friendId } });// eslint-disable-next-line
   }, [user]);
 
   const handleSendMessage = () => {

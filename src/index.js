@@ -6,25 +6,27 @@ import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
-  HttpLink,
   split,
 } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { BrowserRouter } from "react-router-dom";
 import { getMainDefinition } from "@apollo/client/utilities";
+import { createUploadLink } from "apollo-upload-client";
+
+const tunnelURL = "localhost:5000";
 
 const Main = () => {
   const [globalToken, setGlobalToken] = useState("");
 
-  const httpLink = new HttpLink({
-    uri: "http://localhost:5000/graphql",
+  const httpLink = new createUploadLink({
+    uri: `http://${tunnelURL}/graphql`,
     headers: {
       Authorization: `Bearer ${globalToken}`,
     },
   });
 
   const wsLink = new WebSocketLink({
-    uri: `ws://localhost:5000/graphql`,
+    uri: `ws://${tunnelURL}/graphql`,
     options: {
       reconnect: true,
       connectionParams: {

@@ -23,7 +23,7 @@ function TabPanel(props) {
   );
 }
 
-const Home = () => {
+const ChatScreen = () => {
   const [value, setValue] = React.useState(0);
   const [selectedFriend, setSelectedFriend] = useState({});
 
@@ -70,4 +70,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default ChatScreen;

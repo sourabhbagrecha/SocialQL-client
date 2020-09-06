@@ -16,7 +16,7 @@ const GET_REQUESTS_SENT = gql`
 `;
 
 const CANCEL_FRIEND_REQUEST = gql`
-  mutation ($userId: ID!){
+  mutation($userId: ID!) {
     cancelFriendRequest(userId: $userId)
   }
 `;
@@ -29,7 +29,7 @@ function RequestsSentList(props) {
     setRequests((requests) => [...requests, ...data.requestsSent]);
   };
   const onError = (error) => {
-    console.log(error);
+    setAlert(true, error.message, "error");
   };
   const { loading, error } = useQuery(GET_REQUESTS_SENT, {
     onCompleted,
@@ -37,7 +37,6 @@ function RequestsSentList(props) {
   });
 
   const onCancelFriendRequestCompleted = (data) => {
-    console.log({ data });
     return setAlert(true, data.cancelFriendRequest, "success");
   };
 

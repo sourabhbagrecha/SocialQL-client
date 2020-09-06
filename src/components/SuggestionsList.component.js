@@ -40,7 +40,6 @@ function SuggestionsList(props) {
   });
 
   const onFriendRequestCompleted = (data) => {
-    console.log({ data });
     return setAlert(true, data.friendRequest, "success");
   };
 
